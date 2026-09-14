@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conciliação de Pedidos Oracle - Diebold Nixdorf</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Chamada local obrigatória (Garante funcionamento em redes corporativas com bloqueio) -->
+    <script src="xlsx.full.min.js"></script>
+</head>
+<body>
+
+<header>
+    <h1>CONCILIAÇÃO DE PEDIDOS ORACLE</h1>
+    <button onclick="resetarSistema()" style="margin-top:10px;background:#f0ad4e;color:white;border:none;padding:8px 15px;border-radius:4px;cursor:pointer;font-weight:bold;">
+        🔄 Resetar Sistema
+    </button>
+</header>
+
+<div class="container">
+
+    <!-- SEÇÃO 1: Entrada Manual de Pedidos -->
+    <div class="section">
+        <h2>1. Inserção Manual de Pedidos Oracle</h2>
+
+        <div class="form-group">
+            <input type="text" id="pedidoInput" placeholder="Digite o pedido Oracle" onkeypress="verificarEnter(event)">
+            <button onclick="adicionarPedidoManual()">
+                Inserir Pedido
+            </button>
+        </div>
+
+        <h3>Pedidos Inseridos</h3>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Pedido</th>
+                        <th>Horário</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaManuais"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- SEÇÃO 2: Cruzamento com Relatório Excel -->
+    <div class="section">
+        <h2>2. Cruzamento com Relatório Excel</h2>
+        <p>Selecione o relatório Excel para realizar a comparação.</p>
+
+        <div class="form-group">
+            <input type="file" id="excelFile" accept=".xlsx,.xls,.csv">
+            <button onclick="processarExcel()">
+                Processar e Comparar
+            </button>
+        </div>
+
+        <h3>Resultado da Validação</h3>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Pedido Relatório</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaResultado"></tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script>
+let pedidosManuais = [];
+
+function verificarEnter(event) {
+    if (event.key === "Enter") {
+        event.preventDefault(); 
+        adicionarPedidoManual();
+    }
+}
+
+function adicionarPedidoManual() {
+    const input = document.getElementById("pedidoInput");
+    const pedido = input.value.trim();
+
+    if (!pedido) return;
+
+    const existe = pedidosManuais.some(item => item.texto === pedido);
+    if (existe) {
+        alert("Este pedido já foi inserido na listagem.");
+        return;
+    }
+
+    pedidosManuais.push({
+        texto: pedido,
+        horario: new Date().toLocaleTimeString('pt-BR')
+    });
+
+    atualizarTabelaManuais();
+    input.value = "";
+    input.focus();
+}
+
+function atualizarTabelaManuais() {
+    const tabela = document.getElementById("tabelaManuais");
+    tabela.innerHTML = "";
+
+    pedidosManuais.forEach((item, indice) => {
+        const linha = document.createElement("tr");
+
+        linha.innerHTML = `
+            <td><strong>${item.texto}</strong></td>
+            <td>${item.horario}</td>
+            <td>
+                <button onclick="corrigirPedidoManual(${indice})" style="background-color: #0275d8; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; font-weight: bold; margin-right: 5px;">✏️ Corrigir</button>
+                <button onclick="excluirPedidoManual(${indice})" style="background-color: #d9534f; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; font-weight: bold;">❌ Excluir</button>
+            </td>
+        `;
+
+        tabela.appendChild(linha);
+    });
+}
+
+function excluirPedidoManual(indice) {
+    pedidosManuais.splice(indice, 1);
+    atualizarTabelaManuais();
+}
+
+function corrigirPedidoManual(indice) {
+    const input = document.getElementById("pedidoInput");
+    input.value = pedidosManuais[indice].texto;
+    pedidosManuais.splice(indice, 1);
+    atualizarTabelaManuais();
+    input.focus();
+}
+
+function limparValor(valor) {
+    return String(valor)
+        .replace(/[^\w\s\-\/]/g, "")
+        .trim();
+}
+
+function processarExcel() {
+    // PROTEÇÃO CRÍTICA: Interpõe um aviso amigável e impede o travamento se o script local for bloqueado
+    if (typeof XLSX === 'undefined') {
+        alert("ERRO DE AMBIENTE LOCAL:\nA biblioteca 'xlsx.full.min.js' não foi carregada pelo navegador.\n\nCertifique-se de que:\n1. Baixou o ficheiro 'xlsx.full.min.js'.\n2. Ele está na MESMA pasta que este arquivo HTML.");
+        return;
+    }
+
+    const fileInput = document.getElementById("excelFile");
+    
+    if (!fileInput.files || fileInput.files.length === 0) {
+        alert("Por favor, selecione o arquivo do relatório primeiro.");
+        return;
+    }
+    
+    const arquivo = fileInput.files[0]; 
+    const extensao = arquivo.name.split('.').pop().toLowerCase();
+    const reader = new FileReader();
+    const expressaoRegex = /\b(DB\d{8}|DC\d{8}|F\d{8}|\d{8})\b/g;
+
+    if (extensao === 'xlsx' || extensao === 'xls') {
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                let pedidosExcel = [];
+
+                workbook.SheetNames.forEach(sheetName => {
+                    const worksheet = workbook.Sheets[sheetName];
+                    const csvTexto = XLSX.utils.sheet_to_csv(worksheet);
+                    
+                    let correspondencia;
+                    while ((correspondencia = expressaoRegex.exec(csvTexto)) !== null) {
+                        const codigoIdentificado = correspondencia[0]; 
+                        if (!pedidosExcel.includes(codigoIdentificado) && codigoIdentificado !== '24004716') {
+                            pedidosExcel.push(codigoIdentificado);
+                        }
+                    }
+                });
+                gerarTabelaComparacao(pedidosExcel);
+            } catch (erro) {
+                console.error(erro);
+                alert("Erro ao decodificar a planilha Excel: " + erro.message);
+            }
+        };
+        reader.readAsArrayBuffer(arquivo);
+    } else {
+        reader.onload = function(e) {
+            try {
+                const textoPlano = e.target.result;
+                let pedidosTexto = [];
+                let correspondencia;
+                while ((correspondencia = expressaoRegex.exec(textoPlano)) !== null) {
+                    const codigoIdentificado = correspondencia[0]; 
+                    if (!pedidosTexto.includes(codigoIdentificado) && codigoIdentificado !== '24004716') {
+                        pedidosTexto.push(codigoIdentificado);
+                    }
+                }
+                if (pedidosTexto.length === 0) {
+                    const linhas = textoPlano.split(/\r?\n/);
+                    for (let i = 1; i < linhas.length; i++) {
+                        const colunas = linhas[i].split(/[,;]/);
+                        if (colunas && colunas.length > 0) {
+                            const ped = limparValor(colunas[0]);
+                            if (ped && ped.length >= 4 && !ped.startsWith('Ped Cli')) {
+                                if (!pedidosTexto.includes(ped)) pedidosTexto.push(ped);
+                            }
+                        }
+                    }
+                }
+                gerarTabelaComparacao(pedidosTexto);
+            } catch (erro) {
+                console.error(erro);
+                alert("Erro ao ler o arquivo de texto: " + erro.message);
+            }
+        };
+        reader.readAsText(arquivo, 'UTF-8');
+    }
+}
+
+function gerarTabelaComparacao(pedidosDoRelatorio) {
+    const tabelaResultado = document.getElementById("tabelaResultado");
+    tabelaResultado.innerHTML = "";
+
+    const arraySimplesManuais = pedidosManuais.map(item => item.texto);
+
+    pedidosDoRelatorio.forEach(pedido => {
+        const encontrado = arraySimplesManuais.includes(pedido);
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+            <td><strong>${pedido}</strong></td>
+            <td>
+                <span style="font-weight: bold; color: ${encontrado ? '#22bb33' : '#d9534f'}">
+                    ${encontrado ? '✅ Encontrado' : '⚠️ Não Relacionado'}
+                </span>
+            </td>
+        `;
+        tabelaResultado.appendChild(tr);
+    });
+}
+
+function resetarSistema() {
+    pedidosManuais = [];
+    document.getElementById("tabelaManuais").innerHTML = "";
+    document.getElementById("tabelaResultado").innerHTML = "";
+    document.getElementById("excelFile").value = "";
+    document.getElementById("pedidoInput").value = "";
+}
+</script>
+<script type="text/javascript" src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+
+</body>
+</html>

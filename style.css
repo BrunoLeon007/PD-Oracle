@@ -1,0 +1,169 @@
+/* Cores baseadas na identidade corporativa Diebold Nixdorf */
+:root {
+    --primary-color: #002D62; /* Azul Escuro */
+    --secondary-color: #0072CE; /* Azul Royal */
+    --background-color: #F4F6F9; /* Cinza Claro */
+    --text-color: #333333;
+    --white: #FFFFFF;
+    --success-color: #2ECC71;
+    --alert-color: #E74C3C;
+    --warning-color: #F1C40F; /* Amarelo para Edição */
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background-color: var(--primary-color);
+    color: var(--white);
+    padding: 20px;
+    text-align: center;
+    border-bottom: 4px solid var(--secondary-color);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+header h1 {
+    margin: 0;
+    font-size: 24px;
+    letter-spacing: 1px;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: var(--white);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.section {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #E0E0E0;
+}
+
+.section:last-child {
+    border-bottom: none;
+}
+
+h2 {
+    color: var(--primary-color);
+    font-size: 18px;
+    margin-top: 0;
+}
+
+.instrucao {
+    font-size: 13px; 
+    color: #666;
+}
+
+.form-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+input[type="text"], input[type="file"] {
+    padding: 10px;
+    border: 1px solid #CCCCCC;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+input[type="text"] {
+    flex: 1;
+}
+
+button {
+    background-color: var(--secondary-color);
+    color: var(--white);
+    border: none;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+button:hover {
+    background-color: var(--primary-color);
+}
+
+/* Estilização das Tabelas */
+.table-container {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-top: 15px;
+    border: 1px solid #E0E0E0;
+    border-radius: 4px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 14px;
+}
+
+th {
+    background-color: var(--primary-color);
+    color: var(--white);
+    padding: 12px 15px;
+    position: sticky;
+    top: 0;
+}
+
+td {
+    padding: 10px 15px;
+    border-bottom: 1px solid #E0E0E0;
+}
+
+tr:nth-child(even) {
+    background-color: #F9FAFB;
+}
+
+.badge-success {
+    color: var(--success-color);
+    font-weight: bold;
+}
+
+.badge-alert {
+    color: var(--alert-color);
+    font-weight: bold;
+}
+
+/* Botões de Ação de Linha */
+.btn-action-container {
+    display: flex;
+    gap: 5px;
+}
+
+.btn-edit {
+    background-color: var(--warning-color);
+    color: #333;
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+.btn-edit:hover {
+    background-color: #D4AC0D;
+}
+
+.btn-delete {
+    background-color: var(--alert-color);
+    color: var(--white);
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+.btn-delete:hover {
+    background-color: #C0392B;
+}
+
