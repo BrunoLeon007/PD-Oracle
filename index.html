@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="style.css">
     
     <!-- Chamada local obrigatória (Garante funcionamento em redes corporativas com bloqueio) -->
-    <script src="xlsx.full.min.js"></script>
+    
 </head>
 <body>
 
@@ -58,6 +58,15 @@
                 Processar e Comparar
             </button>
         </div>
+        <!-- Filtro de Status -->
+        <div>
+            <label for="filtroStatus" style="font-weight: bold; margin-right: 5px;">Filtrar:</label>
+            <select id="filtroStatus" onchange="filtrarResultados()" style="padding: 6px 10px; border-radius: 4px; border: 1px solid #ccc; font-family: inherit; cursor: pointer;">
+                <option value="todos">📋 Mostrar Todos</option>
+                <option value="expedicao">✅ Expedição</option>
+                <option value="naoseparado">⚠️ Não Separado</option>
+            </select>
+        </div>
 
         <h3>Resultado da Validação</h3>
 
@@ -76,6 +85,16 @@
 
 </div>
 
+<button onclick="imprimirResultados()"
+    style="background:#0275d8;color:white;border:none;padding:8px 15px;border-radius:4px;cursor:pointer;font-weight:bold;">
+    🖨️ Imprimir Resultado
+</button>
+
+
+    
+    
+        <!-- Filtro de Status -->
+      
 <script>
 let pedidosManuais = [];
 
@@ -240,7 +259,7 @@ function gerarTabelaComparacao(pedidosDoRelatorio) {
             <td><strong>${pedido}</strong></td>
             <td>
                 <span style="font-weight: bold; color: ${encontrado ? '#22bb33' : '#d9534f'}">
-                    ${encontrado ? '✅ Encontrado' : '⚠️ Não Relacionado'}
+                    ${encontrado ? '✅ Expedição' : '⚠️ Não Separado'}
                 </span>
             </td>
         `;
@@ -255,8 +274,14 @@ function resetarSistema() {
     document.getElementById("excelFile").value = "";
     document.getElementById("pedidoInput").value = "";
 }
+
+function filtrarResultados() {
+    console.log("Filtrando...");
+}
+
+
 </script>
 <script type="text/javascript" src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-
+<script src="script.js"></script>
 </body>
 </html>
